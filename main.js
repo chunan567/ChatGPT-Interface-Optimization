@@ -11,8 +11,6 @@
 // @grant               GM_registerMenuCommand
 // @grant               GM_unregisterMenuCommand
 // @namespace           your-unique-namespace
-// @license             MIT
-// @homepageURL         https://github.com/chunan567/ChatGPT-Interface-Optimization
 // ==/UserScript==
 
 
@@ -26,6 +24,8 @@
   let ThumbsUpFeedback = GM_getValue('ThumbsUpFeedback', true);
   let keyModifier = GM_getValue('keyModifier', 'ctrl');
   let keyLetter = GM_getValue('keyLetter', 'b');
+  let NewSessionKey = GM_getValue('NewSessionKey', 'ctrl');
+  let NewSessionkeyLetter = GM_getValue('NewSessionkeyLetter', 'q');
 
 
   let langText = {
@@ -42,7 +42,8 @@
       "importantNote": "!!!请注意: 此脚本提供了隐藏页面底部免责声明和反馈按钮的选项，但这可能不符合 OpenAI 的使用条款。使用者应了解这两个功能的重要性：免责声明是对用户的重要信息提示，而反馈按钮是帮助 OpenAI 收集并改进 ChatGPT 的重要工具。因此，",
       "importantNoteWeight_800": "如果你选择使用这个脚本，我们建议你保留这两个功能。",
       "cancel": "取消",
-      "ok": "确定"
+      "ok": "确定",
+      "create": "新建对话快捷键(a-z):",
     },
     "en-US": {
       "settings": "Settings",
@@ -57,7 +58,8 @@
       "importantNote": "!!!Please note: This script provides the option to hide the bottom disclaimer and feedback buttons, but this may not comply with OpenAI's terms of use. Users should understand the importance of these two features: the disclaimer is an important information prompt for users, and the feedback button is an important tool to help OpenAI collect and improve ChatGPT. Therefore, ",
       "importantNoteWeight_800": "if you choose to use this script, we recommend that you keep these two features.",
       "cancel": "Cancel",
-      "ok": "OK"
+      "ok": "OK",
+      "create": "create a conversation shortcut key(a-z):",
     }
   };
 
@@ -96,6 +98,19 @@
           <input class="input" id="keyLetter" type="text" value="${keyLetter}">
         </div>
       </label>
+           <label id="shortcutSetting_new" class="qwerSettingBox_label">
+        ${langText[lang]['create']}
+        <div class="FullScreenModeShortcutKeys">
+          <select id="NewSessionKey">
+            <option value="ctrl" ${NewSessionKey === 'ctrl' ? 'selected' : ''}>ctrl</option>
+            <option value="alt" ${NewSessionKey === 'alt' ? 'selected' : ''}>alt</option>
+            <option value="shift" ${NewSessionKey === 'shift' ? 'selected' : ''}>shift</option>
+            <option value="null" ${NewSessionKey === 'null' ? 'selected' : ''}>${langText[lang]['close']}</option>
+          </select>
+          +
+          <input class="input" id="NewSessionkeyLetter" type="text" value="${NewSessionkeyLetter}">
+        </div>
+      </label>
       <span id="qwerSettingBox_hint_2" style="color: #ff3816d6;">${langText[lang]['importantNote']}<span
           style="font-weight: 800;">${langText[lang]['importantNoteWeight_800']}</span></span>
       <label class="qwerSettingBox_label">
@@ -122,6 +137,8 @@
       let newThumbsUpFeedback = document.getElementById('ThumbsUpFeedback').checked;
       let newKeyModifier = document.getElementById('keyModifier').value;
       let newKeyLetter = document.getElementById('keyLetter').value;
+      let newNewSessionKey = document.getElementById('NewSessionKey').value;
+      let newNewSessionkeyLetter = document.getElementById('NewSessionkeyLetter').value;
 
       GM_setValue('height', Number(newHeight));
       GM_setValue('width', Number(newWidth));
@@ -130,6 +147,8 @@
       GM_setValue('ThumbsUpFeedback', newThumbsUpFeedback);
       GM_setValue('keyModifier', newKeyModifier);
       GM_setValue('keyLetter', newKeyLetter);
+      GM_setValue('NewSessionKey', newNewSessionKey);
+      GM_setValue('NewSessionkeyLetter', newNewSessionkeyLetter);
       location.reload();
     };
     document.getElementById('dialogCancel').onclick = function () {
@@ -145,9 +164,9 @@
     await isLoaded();
     function isLoaded() {
       return new Promise(resolve => {
-        var intervalId = setInterval(() => {
+        var interval_id = setInterval(() => {
           if (document.querySelector(DOMSidebarButtons)) {
-            clearInterval(intervalId);
+            clearInterval(interval_id);
             resolve();
           }
         }, 100);
@@ -165,10 +184,42 @@
     })
 
     navObserver.observe(document.documentElement, { childList: true, subtree: true })
-
     window.addEventListener('keydown', (event) => {
       if (event[`${keyModifier}Key`] && event.key.toLowerCase() === keyLetter.toLowerCase()) {
         sidebarButtons.click();
+      }
+    });
+  }
+
+  if (NewSessionKey) {
+    const DOMNewSessionButton = 'a[class="flex p-3 items-center gap-3 transition-colors duration-200 text-white cursor-pointer text-sm rounded-md border border-white/20 hover:bg-gray-500/10 h-11 flex-shrink-0 flex-grow"]';
+
+    await isLoaded();
+    function isLoaded() {
+      return new Promise(resolve => {
+        var interval_id = setInterval(() => {
+          if (document.querySelector(DOMNewSessionButton)) {
+            clearInterval(interval_id);
+            resolve();
+          }
+        }, 100);
+      });
+    }
+
+    let newSessionButton = document.querySelector(DOMNewSessionButton);
+    var newSessionObserver = new MutationObserver(([{ addedNodes, type }]) => {
+      if (type === 'childList' && addedNodes.length) {
+        setTimeout(() => {
+          newSessionButton = document.querySelector(DOMNewSessionButton);
+        }, 20);
+      }
+    })
+
+    newSessionObserver.observe(document.documentElement, { childList: true, subtree: true })
+
+    window.addEventListener('keydown', (event) => {
+      if (event[`${NewSessionKey}Key`] && event.key.toLowerCase() === NewSessionkeyLetter.toLowerCase()) {
+        newSessionButton.click();
       }
     });
   }
@@ -225,7 +276,7 @@
   #qwerSettingBox {
     padding: 20px;
     border-radius: 5px;
-    width: 430px;
+    width: 468px;
     height: auto;
     background: rgba(255, 255, 255, 0.93);
     backdrop-filter: blur(25px);
@@ -238,6 +289,7 @@
     text-align: center;
     margin-bottom: 20px;
   }
+ 
   #qwerSettingBox_hint,
   #qwerSettingBox_hint_2 {
     margin-top: 0;
@@ -275,13 +327,15 @@
     outline: none;
   }
  
-  .qwerSettingBox_label #keyLetter {
+  .qwerSettingBox_label #keyLetter,
+  .qwerSettingBox_label #NewSessionkeyLetter {
     width: 25px;
     height: 31px;
     border-radius: 8px;
     padding: 0px 5px;
   }
-  .qwerSettingBox_label #keyModifier {
+  .qwerSettingBox_label #keyModifier,
+  .qwerSettingBox_label #NewSessionKey {
     width: 69px;
     height: 31px;
     border-radius: 8px;
